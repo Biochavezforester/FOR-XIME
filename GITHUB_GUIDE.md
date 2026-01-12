@@ -78,7 +78,7 @@ git init
 git add .
 
 # 3. Hacer el primer commit
-git commit -m "Initial commit: FORXIME v1.0 - Portable biodiversity analysis platform"
+git commit -m "Initial commit: FOR-XIME v1.0 - Portable biodiversity analysis platform"
 
 # 4. Renombrar la rama a 'main'
 git branch -M main
@@ -89,7 +89,7 @@ git branch -M main
 Copia el comando que GitHub te mostró (debería verse así):
 
 ```bash
-git remote add origin https://github.com/TU_USUARIO/forxime.git
+git remote add origin https://github.com/Biochavezforester/FOR-XIME.git
 ```
 
 **Reemplaza `TU_USUARIO` con tu nombre de usuario de GitHub**.
