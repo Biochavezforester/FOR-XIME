@@ -120,6 +120,7 @@ def main():
     if opcion == "Bienvenida":
         st.title("🌿 FORXIME")
         st.subheader("Plataforma de Análisis de Biodiversidad de Cámaras Trampa")
+        st.markdown("**Simplifica el análisis estadístico de datos de fototrampeo con sitios simples y pareados**")
         
         st.markdown("---")
         
@@ -128,11 +129,14 @@ def main():
         with col_left:
             st.markdown("### 👋 Acerca de la plataforma")
             st.write("""
-            Esta herramienta automatizada permite procesar datos biológicos de manera rápida y eficiente. 
-            Sus funciones principales incluyen:
-            * Cálculo de índices de biodiversidad (Riqueza, Shannon, Simpson).
-            * Generación de gráficas automáticas.
-            * Estandarización de eventos independientes (promedio de duplicados).
+            Esta herramienta está pensada para **simplificar el análisis estadístico de datos obtenidos 
+            a partir de muestreo por fototrampeo**, contemplando tanto **sitios simples como pareados**.
+            
+            **Funciones principales:**
+            * 📊 Cálculo de índices de biodiversidad (Riqueza, Shannon, Simpson)
+            * 📈 Generación automática de gráficas profesionales
+            * 🔄 Estandarización de eventos independientes (promedio de duplicados)
+            * 📁 Procesamiento de datos de sitios simples y pareados
             """)
             
             st.markdown('<div class="credit-box">', unsafe_allow_html=True)
@@ -283,7 +287,7 @@ def main():
     # ----------------------------------------------------------------------
     elif opcion == "OBTENER ESTADISTICOS":
         st.header("📊 Estadísticos de Biodiversidad")
-        st.info("ℹ️ Sube tu archivo con formato 'MAMIFEROS' (Tabla de Especie x Sitio).")
+        st.info("ℹ️ Sube tu archivo con formato 'MAMIFEROS' (Tabla de Especie x Sitio). Compatible con sitios simples y pareados.")
 
         archivo_stats = st.file_uploader("Cargar Archivo (Excel .xlsx o CSV)", type=['xlsx', 'csv'], key="stats")
 
