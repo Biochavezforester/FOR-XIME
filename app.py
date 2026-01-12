@@ -6,6 +6,8 @@ import io
 import os
 from pathlib import Path
 from datetime import datetime
+from scipy.spatial.distance import pdist, squareform
+from scipy.cluster.hierarchy import dendrogram, linkage
 
 # ==========================================
 # 0. CONFIGURACIÓN DE DIRECTORIOS PORTABLES
@@ -94,6 +96,84 @@ def calcular_simpson_d(x):
     if total == 0: return 0
     p = x / total
     return np.sum(p**2)
+
+def calcular_bray_curtis(df):
+    """Calcula la matriz de distancia de Bray-Curtis entre sitios"""
+    # Transponer para que filas sean sitios y columnas sean especies
+    df_t = df.T
+    # Calcular distancia Bray-Curtis
+    distancias = pdist(df_t, metric='braycurtis')
+    # Convertir a matriz cuadrada
+    matriz_dist = squareform(distancias)
+    return matriz_dist, distancias
+
+def generar_dendrograma(df, ax):
+    """Genera un dendrograma basado en distancia Bray-Curtis"""
+    matriz_dist, distancias = calcular_bray_curtis(df)
+    # Realizar clustering jerárquico (UPGMA)
+    Z = linkage(distancias, method='average')
+    # Generar dendrograma
+    dendrogram(Z, labels=df.columns.tolist(), ax=ax, orientation='right')
+    ax.set_xlabel('Distancia de Bray-Curtis')
+    ax.set_title('Dendrograma de Similitud entre Sitios\n(Método UPGMA - Bray-Curtis)')
+    return Z
+
+def interpretar_resultados(resultados):
+    """Genera interpretación automática de los resultados estadísticos"""
+    interpretacion = []
+    
+    # Análisis de Riqueza
+    sitio_max_riqueza = resultados['Riqueza (S)'].idxmax()
+    sitio_min_riqueza = resultados['Riqueza (S)'].idxmin()
+    max_riqueza = resultados['Riqueza (S)'].max()
+    min_riqueza = resultados['Riqueza (S)'].min()
+    
+    interpretacion.append(f"**📊 Riqueza de Especies:**")
+    interpretacion.append(f"- El sitio **{sitio_max_riqueza}** presenta la mayor riqueza con **{int(max_riqueza)} especies**.")
+    interpretacion.append(f"- El sitio **{sitio_min_riqueza}** presenta la menor riqueza con **{int(min_riqueza)} especies**.")
+    
+    if max_riqueza > min_riqueza * 1.5:
+        interpretacion.append(f"- Existe una **diferencia considerable** en riqueza entre sitios.")
+    else:
+        interpretacion.append(f"- La riqueza es **relativamente homogénea** entre sitios.")
+    
+    interpretacion.append("")
+    
+    # Análisis de Shannon
+    sitio_max_shannon = resultados['Shannon (H\')'].idxmax()
+    sitio_min_shannon = resultados['Shannon (H\')'].idxmin()
+    max_shannon = resultados['Shannon (H\')'].max()
+    min_shannon = resultados['Shannon (H\')'].min()
+    
+    interpretacion.append(f"**🌈 Índice de Shannon (Diversidad):**")
+    interpretacion.append(f"- El sitio **{sitio_max_shannon}** tiene la mayor diversidad (H' = {max_shannon:.3f}).")
+    interpretacion.append(f"- El sitio **{sitio_min_shannon}** tiene la menor diversidad (H' = {min_shannon:.3f}).")
+    
+    # Interpretación del valor de Shannon
+    promedio_shannon = resultados['Shannon (H\')'].mean()
+    if promedio_shannon > 2.5:
+        interpretacion.append(f"- En general, los sitios presentan **alta diversidad** (promedio H' = {promedio_shannon:.3f}).")
+    elif promedio_shannon > 1.5:
+        interpretacion.append(f"- En general, los sitios presentan **diversidad moderada** (promedio H' = {promedio_shannon:.3f}).")
+    else:
+        interpretacion.append(f"- En general, los sitios presentan **baja diversidad** (promedio H' = {promedio_shannon:.3f}).")
+    
+    interpretacion.append("")
+    
+    # Análisis de Simpson
+    sitio_min_simpson = resultados['Simpson (1-D)'].idxmax()  # Mayor 1-D = menor dominancia
+    sitio_max_simpson = resultados['Simpson (1-D)'].idxmin()  # Menor 1-D = mayor dominancia
+    
+    interpretacion.append(f"**👑 Índice de Simpson (Dominancia):**")
+    interpretacion.append(f"- El sitio **{sitio_min_simpson}** tiene la **menor dominancia** (mayor equitatividad).")
+    interpretacion.append(f"- El sitio **{sitio_max_simpson}** tiene la **mayor dominancia** (pocas especies dominan).")
+    
+    interpretacion.append("")
+    interpretacion.append("**💡 Recomendaciones:**")
+    interpretacion.append(f"- Los sitios con alta diversidad (como **{sitio_max_shannon}**) son importantes para la conservación.")
+    interpretacion.append(f"- Considerar acciones de manejo en sitios con baja diversidad (como **{sitio_min_shannon}**).")
+    
+    return "\n".join(interpretacion)
 
 # ==========================================
 # 3. INTERFAZ DE USUARIO PRINCIPAL
@@ -347,6 +427,12 @@ def main():
                     
                     st.success(f"💾 Archivo también guardado en: `outputs/{output_filename}`")
 
+                    # 5.5. Interpretación Automática de Resultados
+                    st.markdown("---")
+                    st.subheader("📝 Interpretación de Resultados")
+                    interpretacion_texto = interpretar_resultados(resultados)
+                    st.info(interpretacion_texto)
+
                     # 6. Generar Gráficas
                     st.subheader("📈 Gráficas Generadas")
                     col1, col2 = st.columns(2)
@@ -385,7 +471,33 @@ def main():
                     fig3_path = OUTPUTS_DIR / f"Grafica_Abundancia_{timestamp}.png"
                     fig3.savefig(fig3_path, dpi=300, bbox_inches='tight')
                     
-                    st.info(f"📊 Gráficas guardadas en la carpeta `outputs/`")
+                    # Dendrograma de Bray-Curtis
+                    st.markdown("---")
+                    st.subheader("🌳 Dendrograma de Similitud (Bray-Curtis)")
+                    st.write("""
+                    El dendrograma muestra la similitud entre sitios basándose en su composición de especies.
+                    Sitios más cercanos en el dendrograma tienen comunidades más similares.
+                    """)
+                    
+                    # Verificar que haya al menos 2 sitios para el dendrograma
+                    if len(df_clean.columns) >= 2:
+                        fig4, ax4 = plt.subplots(figsize=(10, 6))
+                        try:
+                            generar_dendrograma(df_clean, ax4)
+                            plt.tight_layout()
+                            st.pyplot(fig4)
+                            
+                            # Guardar dendrograma
+                            fig4_path = OUTPUTS_DIR / f"Dendrograma_BrayCurtis_{timestamp}.png"
+                            fig4.savefig(fig4_path, dpi=300, bbox_inches='tight')
+                            
+                            st.success("✅ Dendrograma generado. Sitios agrupados indican comunidades similares.")
+                        except Exception as e:
+                            st.warning(f"⚠️ No se pudo generar el dendrograma: {e}")
+                    else:
+                        st.warning("⚠️ Se necesitan al menos 2 sitios para generar el dendrograma.")
+                    
+                    st.info(f"📊 Todas las gráficas guardadas en la carpeta `outputs/`")
 
                 except Exception as e:
                     st.error(f"Error al procesar: {e}")
