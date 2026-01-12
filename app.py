@@ -230,6 +230,8 @@ def main():
             **Funciones principales:**
             * 📊 Cálculo de índices de biodiversidad (Riqueza, Shannon, Simpson)
             * 📈 Generación automática de gráficas profesionales
+            * 🌳 Dendrograma de similitud (Bray-Curtis) entre sitios
+            * 📝 Interpretación automática de resultados estadísticos
             * 🔄 Estandarización de eventos independientes (promedio de duplicados)
             * 📁 Procesamiento de datos de sitios simples y pareados
             """)
