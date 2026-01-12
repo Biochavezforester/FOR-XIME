@@ -59,7 +59,7 @@ FORXIME es una aplicación **100% portable** desarrollada por el **Biólogo Eric
 1. **Clona el repositorio**
 
    ```bash
-   git clone https://github.com/TU_USUARIO/forxime.git
+   git clone https://github.com/Biochavezforester/FOR-XIME.git
    cd forxime
    ```
 
@@ -222,7 +222,7 @@ Si esta herramienta te es útil, considera hacer un donativo:
 
 Para preguntas, sugerencias o reportar problemas:
 
-- Abre un [Issue](https://github.com/TU_USUARIO/forxime/issues)
+- Abre un [Issue](https://github.com/Biochavezforester/FOR-XIME/issues)
 - Contacta al desarrollador
 
 ## 🙏 Agradecimientos
