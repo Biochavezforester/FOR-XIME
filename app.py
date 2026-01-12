@@ -101,10 +101,25 @@ def calcular_bray_curtis(df):
     """Calcula la matriz de distancia de Bray-Curtis entre sitios"""
     # Transponer para que filas sean sitios y columnas sean especies
     df_t = df.T
+    
+    # Limpiar datos: reemplazar NaN con 0 y asegurar valores no negativos
+    df_t = df_t.fillna(0)
+    df_t = df_t.clip(lower=0)
+    
+    # Verificar que haya al menos algún dato
+    if df_t.sum().sum() == 0:
+        raise ValueError("Todos los sitios tienen abundancia cero")
+    
     # Calcular distancia Bray-Curtis
     distancias = pdist(df_t, metric='braycurtis')
+    
+    # Manejar valores infinitos o NaN (pueden ocurrir con sitios vacíos)
+    # Reemplazar NaN e inf con 1.0 (máxima distancia)
+    distancias = np.nan_to_num(distancias, nan=1.0, posinf=1.0, neginf=1.0)
+    
     # Convertir a matriz cuadrada
     matriz_dist = squareform(distancias)
+    
     return matriz_dist, distancias
 
 def generar_dendrograma(df, ax):
@@ -492,8 +507,12 @@ def main():
                             fig4.savefig(fig4_path, dpi=300, bbox_inches='tight')
                             
                             st.success("✅ Dendrograma generado. Sitios agrupados indican comunidades similares.")
+                        except ValueError as e:
+                            st.warning(f"⚠️ No se pudo generar el dendrograma: {str(e)}")
+                            st.info("💡 Verifica que todos los sitios tengan al menos una especie registrada.")
                         except Exception as e:
-                            st.warning(f"⚠️ No se pudo generar el dendrograma: {e}")
+                            st.warning(f"⚠️ Error al generar el dendrograma: {str(e)}")
+                            st.info("💡 Esto puede ocurrir si hay datos inconsistentes. Verifica tu archivo.")
                     else:
                         st.warning("⚠️ Se necesitan al menos 2 sitios para generar el dendrograma.")
                     
